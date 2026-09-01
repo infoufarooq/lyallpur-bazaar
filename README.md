@@ -134,5 +134,15 @@ Daraz-alike/
 
 ---
 
+## ⚡ Deployment on Vercel
+
+Lyallpur Bazaar is configured for fullstack monorepo deployment on **Vercel** (React Vite frontend + FastAPI serverless backend):
+
+1. Connect the repository to Vercel (keep **Root Directory** as `./`).
+2. Vercel automatically detects `vercel.json`, `package.json`, and `api/index.py`.
+3. For full details and environment variables, see [docs/VERCEL_DEPLOYMENT.md](file:///c:/Users/User/Documents/Projects/Daraz-alike/docs/VERCEL_DEPLOYMENT.md).
+
+---
+
 ## ⚖️ License
 Built for educational and prototype demonstration purposes for Faisalabad local commerce.
