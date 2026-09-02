@@ -78,6 +78,7 @@ class ProductUpdate(BaseModel):
 class ProductOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
+    seller_id: Optional[int] = None
     name: str
     slug: str
     sku: str

@@ -1,11 +1,14 @@
 from typing import List, Optional, Tuple, Dict, Any
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
 from app.models.product import Product, ProductImage, ProductSpecification
 from app.models.category import Category
 from app.models.brand import Brand
+from app.models.user import User
 from app.schemas.product import ProductCreate, ProductUpdate, ProductOut, ProductDetailOut, FilterFacet
 from app.services.search_service import find_alternative_products, find_similar_products
+from app.services.auth_service import get_user_roles_and_permissions
 
 def format_product_out(product: Product) -> ProductOut:
     primary_img = None
@@ -19,6 +22,7 @@ def format_product_out(product: Product) -> ProductOut:
 
     return ProductOut(
         id=product.id,
+        seller_id=product.seller_id,
         name=product.name,
         slug=product.slug,
         sku=product.sku,
@@ -103,8 +107,10 @@ def get_facets(db: Session, current_products: List[Product]) -> Dict[str, Any]:
         "brands": brand_facets
     }
 
-def create_product(db: Session, data: ProductCreate) -> Product:
+def create_product(db: Session, data: ProductCreate, seller_id: Optional[int] = None) -> Product:
     prod_data = data.model_dump(exclude={"images", "specifications"})
+    if seller_id is not None:
+        prod_data["seller_id"] = seller_id
     product = Product(**prod_data)
     db.add(product)
     db.flush()
@@ -131,3 +137,22 @@ def create_product(db: Session, data: ProductCreate) -> Product:
     db.commit()
     db.refresh(product)
     return product
+
+def verify_product_ownership(product_id: int, user: User, db: Session) -> Product:
+    product = db.query(Product).filter(Product.id == product_id).first()
+    if not product:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Product with id {product_id} not found"
+        )
+
+    user_roles, _ = get_user_roles_and_permissions(user)
+    is_admin = getattr(user, "is_admin", False) or "admin" in user_roles
+
+    if not is_admin and product.seller_id != user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access forbidden: you do not have ownership of this product"
+        )
+    return product
+
