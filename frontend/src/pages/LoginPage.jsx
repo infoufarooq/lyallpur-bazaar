@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { LogIn, Lock, Phone, AlertCircle, Sparkles } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -10,6 +10,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const { login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from?.pathname || '/';
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -17,7 +19,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(phoneOrEmail.trim(), password);
-      navigate('/');
+      navigate(from, { replace: true });
     } catch (err) {
       console.error(err);
       setError(err.response?.data?.detail || 'Invalid login credentials.');
@@ -30,8 +32,14 @@ export default function LoginPage() {
     if (demoType === 'admin') {
       setPhoneOrEmail('admin@lyallpurbazaar.pk');
       setPassword('Admin@123');
-    } else {
-      setPhoneOrEmail('03217654321');
+    } else if (demoType === 'seller') {
+      setPhoneOrEmail('seller@lyallpurbazaar.pk');
+      setPassword('Seller@123');
+    } else if (demoType === 'rider') {
+      setPhoneOrEmail('rider@lyallpurbazaar.pk');
+      setPassword('Rider@123');
+    } else if (demoType === 'customer') {
+      setPhoneOrEmail('customer@lyallpurbazaar.pk');
       setPassword('Customer@123');
     }
   };
@@ -112,16 +120,34 @@ export default function LoginPage() {
             <button
               type="button"
               onClick={() => handleQuickDemo('admin')}
-              className="px-2.5 py-1.5 bg-white hover:bg-emerald-100 border border-emerald-300 rounded-lg text-[11px] font-bold text-emerald-900 transition-colors"
+              className="px-2.5 py-1.5 bg-white hover:bg-purple-50 border border-purple-200 hover:border-purple-300 rounded-lg text-[11px] font-bold text-purple-900 transition-colors flex items-center justify-center gap-1"
             >
-              Fill Admin Demo
+              <span>👑</span>
+              <span>Admin Demo</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickDemo('seller')}
+              className="px-2.5 py-1.5 bg-white hover:bg-amber-50 border border-amber-200 hover:border-amber-300 rounded-lg text-[11px] font-bold text-amber-900 transition-colors flex items-center justify-center gap-1"
+            >
+              <span>🏪</span>
+              <span>Seller Demo</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => handleQuickDemo('rider')}
+              className="px-2.5 py-1.5 bg-white hover:bg-blue-50 border border-blue-200 hover:border-blue-300 rounded-lg text-[11px] font-bold text-blue-900 transition-colors flex items-center justify-center gap-1"
+            >
+              <span>🛵</span>
+              <span>Rider Demo</span>
             </button>
             <button
               type="button"
               onClick={() => handleQuickDemo('customer')}
-              className="px-2.5 py-1.5 bg-white hover:bg-emerald-100 border border-emerald-300 rounded-lg text-[11px] font-bold text-emerald-900 transition-colors"
+              className="px-2.5 py-1.5 bg-white hover:bg-emerald-50 border border-emerald-200 hover:border-emerald-300 rounded-lg text-[11px] font-bold text-emerald-900 transition-colors flex items-center justify-center gap-1"
             >
-              Fill Customer Demo
+              <span>🛍️</span>
+              <span>Customer Demo</span>
             </button>
           </div>
         </div>

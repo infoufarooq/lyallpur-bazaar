@@ -63,8 +63,38 @@ export function AuthProvider({ children }) {
     setUser(null);
   };
 
+  const hasRole = (roleName) => Boolean(
+    user?.roles?.includes(roleName) || user?.roles?.includes('admin') || user?.is_admin
+  );
+
+  const hasPermission = (code) => Boolean(
+    user?.roles?.includes('admin') ||
+    user?.is_admin ||
+    user?.permissions?.includes('*') ||
+    user?.permissions?.includes(code)
+  );
+
+  const isAdmin = Boolean(user?.roles?.includes('admin') || user?.is_admin);
+  const isSeller = Boolean(user?.roles?.includes('seller'));
+  const isRider = Boolean(user?.roles?.includes('rider'));
+  const isCustomer = Boolean(!isSeller && !isRider && !isAdmin) || Boolean(user?.roles?.includes('customer'));
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, isAdmin: Boolean(user?.is_admin) }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        register,
+        logout,
+        hasRole,
+        hasPermission,
+        isAdmin,
+        isSeller,
+        isRider,
+        isCustomer
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

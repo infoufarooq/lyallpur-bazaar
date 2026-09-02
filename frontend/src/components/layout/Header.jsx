@@ -9,7 +9,7 @@ import client from '../../api/client';
 
 export default function Header() {
   const { totalItems, setIsDrawerOpen } = useCart();
-  const { user, logout, isAdmin } = useAuth();
+  const { user, logout, isAdmin, isSeller, isRider } = useAuth();
   const { selectedLocality, setIsModalOpen } = useDelivery();
   const [categories, setCategories] = useState([]);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -81,13 +81,33 @@ export default function Header() {
 
         {/* Action Buttons */}
         <div className="flex items-center space-x-3 md:space-x-5 flex-shrink-0">
-          {/* Admin shortcut if logged in as admin */}
+          {/* Top navigation shortcut badges for active roles */}
+          {isSeller && (
+            <Link
+              to="/seller"
+              className="hidden lg:flex items-center gap-1.5 text-xs font-bold text-amber-800 bg-amber-50 hover:bg-amber-100 px-3 py-1.5 rounded-lg border border-amber-200 transition-colors"
+            >
+              <span>🏪</span>
+              <span>Seller Hub</span>
+            </Link>
+          )}
+
+          {isRider && (
+            <Link
+              to="/rider"
+              className="hidden lg:flex items-center gap-1.5 text-xs font-bold text-blue-800 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-lg border border-blue-200 transition-colors"
+            >
+              <span>🛵</span>
+              <span>Rider Portal</span>
+            </Link>
+          )}
+
           {isAdmin && (
             <Link
               to="/admin"
-              className="hidden lg:flex items-center gap-1 text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg border border-purple-200 transition-colors"
+              className="hidden lg:flex items-center gap-1.5 text-xs font-bold text-purple-700 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg border border-purple-200 transition-colors"
             >
-              <ShieldCheck size={14} />
+              <span>🛡️</span>
               <span>Admin Panel</span>
             </Link>
           )}
@@ -133,9 +153,23 @@ export default function Header() {
                       <span>Track Active Order</span>
                     </Link>
 
+                    {isSeller && (
+                      <Link to="/seller" className="flex items-center gap-2 px-3 py-2 hover:bg-amber-50 text-amber-800 font-semibold border-t border-gray-50">
+                        <span>🏪</span>
+                        <span>Seller Hub</span>
+                      </Link>
+                    )}
+
+                    {isRider && (
+                      <Link to="/rider" className="flex items-center gap-2 px-3 py-2 hover:bg-blue-50 text-blue-800 font-semibold border-t border-gray-50">
+                        <span>🛵</span>
+                        <span>Delivery Run</span>
+                      </Link>
+                    )}
+
                     {isAdmin && (
                       <Link to="/admin" className="flex items-center gap-2 px-3 py-2 hover:bg-purple-50 text-purple-700 font-semibold border-t border-gray-50">
-                        <ShieldCheck size={14} />
+                        <span>🛡️</span>
                         <span>Admin Dashboard</span>
                       </Link>
                     )}
