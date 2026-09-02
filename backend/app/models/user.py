@@ -13,13 +13,19 @@ class User(Base):
     hashed_password = Column(String(255), nullable=False)
     is_admin = Column(Boolean, default=False)
     is_active = Column(Boolean, default=True)
+    business_name = Column(String(150), nullable=True)
+    vehicle_type = Column(String(100), nullable=True)
+    vehicle_number = Column(String(50), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
     addresses = relationship("Address", back_populates="user", cascade="all, delete-orphan")
-    orders = relationship("Order", back_populates="user")
+    orders = relationship("Order", foreign_keys="[Order.user_id]", back_populates="user")
     cart = relationship("Cart", back_populates="user", uselist=False)
+    roles = relationship("Role", secondary="user_roles", back_populates="users")
+    seller_products = relationship("Product", back_populates="seller")
+    assigned_deliveries = relationship("Order", foreign_keys="[Order.rider_id]", back_populates="rider")
 
 class Address(Base):
     __tablename__ = "addresses"

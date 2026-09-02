@@ -16,40 +16,44 @@ def seed_database(db: Session):
     seed_default_delivery_zones(db)
 
     # 2. Users (Admin and Demo Customer)
-    admin_user = User(
-        full_name="Lyallpur Admin",
-        email="admin@lyallpurbazaar.pk",
-        phone_number="03001234567",
-        hashed_password=get_password_hash("Admin@123"),
-        is_admin=True,
-        is_active=True
-    )
-    db.add(admin_user)
+    admin_user = db.query(User).filter(User.email == "admin@lyallpurbazaar.pk").first()
+    if not admin_user:
+        admin_user = User(
+            full_name="Lyallpur Admin",
+            email="admin@lyallpurbazaar.pk",
+            phone_number="03001234567",
+            hashed_password=get_password_hash("Admin@123"),
+            is_admin=True,
+            is_active=True
+        )
+        db.add(admin_user)
 
-    customer_user = User(
-        full_name="Muhammad Usman",
-        email="usman@example.com",
-        phone_number="03217654321",
-        hashed_password=get_password_hash("Customer@123"),
-        is_admin=False,
-        is_active=True
-    )
-    db.add(customer_user)
-    db.flush()
+    customer_user = db.query(User).filter(User.email == "usman@example.com").first()
+    if not customer_user:
+        customer_user = User(
+            full_name="Muhammad Usman",
+            email="usman@example.com",
+            phone_number="03217654321",
+            hashed_password=get_password_hash("Customer@123"),
+            is_admin=False,
+            is_active=True
+        )
+        db.add(customer_user)
+        db.flush()
 
-    # Customer Default Address in Faisalabad
-    addr = Address(
-        user_id=customer_user.id,
-        title="Home",
-        recipient_name="Muhammad Usman",
-        phone_number="03217654321",
-        city="Faisalabad",
-        locality="Peoples Colony No. 1",
-        full_address="House 42-B, Street 7, Near Chenab Club, Peoples Colony No. 1",
-        nearby_landmark="Near Chenab Club / D Ground",
-        is_default=True
-    )
-    db.add(addr)
+        # Customer Default Address in Faisalabad
+        addr = Address(
+            user_id=customer_user.id,
+            title="Home",
+            recipient_name="Muhammad Usman",
+            phone_number="03217654321",
+            city="Faisalabad",
+            locality="Peoples Colony No. 1",
+            full_address="House 42-B, Street 7, Near Chenab Club, Peoples Colony No. 1",
+            nearby_landmark="Near Chenab Club / D Ground",
+            is_default=True
+        )
+        db.add(addr)
 
     # 3. Brands
     brands_data = [

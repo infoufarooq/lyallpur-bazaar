@@ -9,6 +9,7 @@ class Order(Base):
     id = Column(Integer, primary_key=True, index=True)
     order_number = Column(String(50), unique=True, index=True, nullable=False) # e.g. FSD-2026-1001
     user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    rider_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     
     # Customer Details
     customer_name = Column(String(100), nullable=False)
@@ -36,12 +37,15 @@ class Order(Base):
     
     estimated_delivery_date = Column(String(100), nullable=True)
     delivery_notes = Column(Text, nullable=True)
+    assigned_at = Column(DateTime, nullable=True)
+    delivered_at = Column(DateTime, nullable=True)
     
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
 
     # Relationships
-    user = relationship("User", back_populates="orders")
+    user = relationship("User", foreign_keys=[user_id], back_populates="orders")
+    rider = relationship("User", foreign_keys=[rider_id], back_populates="assigned_deliveries")
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
 
 class OrderItem(Base):

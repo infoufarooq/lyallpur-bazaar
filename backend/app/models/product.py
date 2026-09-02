@@ -7,6 +7,7 @@ class Product(Base):
     __tablename__ = "products"
 
     id = Column(Integer, primary_key=True, index=True)
+    seller_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
     name = Column(String(200), index=True, nullable=False)
     slug = Column(String(250), unique=True, index=True, nullable=False)
     sku = Column(String(50), unique=True, index=True, nullable=False)
@@ -42,6 +43,7 @@ class Product(Base):
     # Relationships
     category = relationship("Category", back_populates="products")
     brand = relationship("Brand", back_populates="products")
+    seller = relationship("User", back_populates="seller_products")
     images = relationship("ProductImage", back_populates="product", cascade="all, delete-orphan", order_by="ProductImage.display_order")
     specifications = relationship("ProductSpecification", back_populates="product", cascade="all, delete-orphan", order_by="ProductSpecification.display_order")
     cart_items = relationship("CartItem", back_populates="product")

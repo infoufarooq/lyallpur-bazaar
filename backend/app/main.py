@@ -4,6 +4,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import engine, Base, SessionLocal
+import app.models  # ensure all models including RBAC are registered
+from app.seed.seed_rbac import seed_rbac_data
 from app.seed.seed_data import seed_database
 
 # Import routers
@@ -17,6 +19,7 @@ async def lifespan(app: FastAPI):
     # Seed database
     db = SessionLocal()
     try:
+        seed_rbac_data(db)
         seed_database(db)
     finally:
         db.close()
