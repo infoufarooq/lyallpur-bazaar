@@ -8,6 +8,7 @@ import Header from './components/layout/Header';
 import Footer from './components/layout/Footer';
 import DeliveryModal from './components/layout/DeliveryModal';
 import CartDrawer from './components/layout/CartDrawer';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 
 import HomePage from './pages/HomePage';
 import SearchResultsPage from './pages/SearchResultsPage';
@@ -20,6 +21,8 @@ import AccountPage from './pages/AccountPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import AdminPage from './pages/AdminPage';
+import SellerPage from './pages/SellerPage';
+import RiderPage from './pages/RiderPage';
 
 function ScrollToTop() {
   const { pathname } = useLocation();
@@ -50,7 +53,30 @@ export default function App() {
                   <Route path="/account" element={<AccountPage />} />
                   <Route path="/login" element={<LoginPage />} />
                   <Route path="/register" element={<RegisterPage />} />
-                  <Route path="/admin" element={<AdminPage />} />
+                  <Route
+                    path="/seller"
+                    element={
+                      <ProtectedRoute allowedRoles={['seller', 'admin']}>
+                        <SellerPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/rider"
+                    element={
+                      <ProtectedRoute allowedRoles={['rider', 'admin']}>
+                        <RiderPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/admin"
+                    element={
+                      <ProtectedRoute allowedRoles={['admin']}>
+                        <AdminPage />
+                      </ProtectedRoute>
+                    }
+                  />
                   <Route path="*" element={<HomePage />} />
                 </Routes>
               </main>
