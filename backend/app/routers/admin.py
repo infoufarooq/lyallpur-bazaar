@@ -1,18 +1,22 @@
+from datetime import datetime
 from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from app.database import get_db
 from app.models.user import User
+from app.models.role import Role
 from app.models.product import Product, ProductImage, ProductSpecification
 from app.models.category import Category
 from app.models.order import Order
 from app.models.delivery_zone import DeliveryZone
+from app.schemas.auth import UserOut
 from app.schemas.order import DashboardMetricsOut, OrderOut, OrderStatusUpdate
 from app.schemas.product import ProductCreate, ProductUpdate, ProductOut, ProductDetailOut
 from app.schemas.category import CategoryCreate, CategoryUpdate, CategoryOut
 from app.schemas.delivery import DeliveryZoneCreate, DeliveryZoneUpdate, DeliveryZoneOut
-from app.services.auth_service import get_current_admin
+from app.schemas.rbac import RiderAssignRequest
+from app.services.auth_service import get_current_admin, require_permissions
 from app.services.product_service import format_product_out, create_product, get_product_by_id_or_slug
 from app.services.order_service import get_dashboard_metrics
 
@@ -181,3 +185,49 @@ def admin_update_zone(
     db.commit()
     db.refresh(zone)
     return zone
+
+# --- Rider Dispatch & Logistics ---
+@router.get("/riders", response_model=List[UserOut])
+def admin_list_riders(
+    current_user: User = Depends(require_permissions("order:assign_rider")),
+    db: Session = Depends(get_db)
+):
+    """
+    Query all active users who possess the rider role.
+    """
+    riders = (
+        db.query(User)
+        .join(User.roles)
+        .filter(Role.name == "rider", User.is_active == True)
+        .distinct()
+        .all()
+    )
+    return riders
+
+@router.put("/orders/{order_id}/assign-rider", response_model=OrderOut)
+def admin_assign_rider(
+    order_id: int,
+    data: RiderAssignRequest,
+    current_user: User = Depends(require_permissions("order:assign_rider")),
+    db: Session = Depends(get_db)
+):
+    """
+    Assign a rider to an order, record assignment timestamp, and advance order status to Packed.
+    """
+    order = db.query(Order).filter(Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    rider = db.query(User).filter(User.id == data.rider_id, User.is_active == True).first()
+    if not rider:
+        raise HTTPException(status_code=404, detail="Rider not found")
+
+    order.rider_id = rider.id
+    order.assigned_at = datetime.utcnow()
+    if order.order_status in ["Pending", "Confirmed", "Processing", None]:
+        order.order_status = "Packed"
+
+    db.commit()
+    db.refresh(order)
+    return order
+

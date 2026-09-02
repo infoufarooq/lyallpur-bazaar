@@ -53,6 +53,9 @@ class OrderOut(BaseModel):
     order_status: str
     estimated_delivery_date: Optional[str] = None
     delivery_notes: Optional[str] = None
+    rider_id: Optional[int] = None
+    assigned_at: Optional[datetime] = None
+    delivered_at: Optional[datetime] = None
     created_at: datetime
     items: List[OrderItemOut] = []
 

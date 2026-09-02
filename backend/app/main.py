@@ -9,7 +9,7 @@ from app.seed.seed_rbac import seed_rbac_data
 from app.seed.seed_data import seed_database
 
 # Import routers
-from app.routers import auth, categories, products, search, cart, orders, delivery, admin
+from app.routers import auth, categories, products, search, cart, orders, delivery, admin, admin_rbac
 
 # Lifespan event to create tables and seed data
 @asynccontextmanager
@@ -53,6 +53,7 @@ app.include_router(cart.router, prefix=api_v1_prefix)
 app.include_router(orders.router, prefix=api_v1_prefix)
 app.include_router(delivery.router, prefix=api_v1_prefix)
 app.include_router(admin.router, prefix=api_v1_prefix)
+app.include_router(admin_rbac.router, prefix=api_v1_prefix)
 
 @app.get("/")
 def root():
