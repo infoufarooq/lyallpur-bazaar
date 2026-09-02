@@ -5,16 +5,22 @@ Add the newest entry at the top.
 ## Task 9: End-to-End Acceptance, Verification & Handoff
 
 - Owner: Antigravity
-- Status: Completed (Milestone Ready for Release)
+- Status: Completed (Deployed to Live Supabase PostgreSQL & Verified)
 - Changed paths:
+  - `supabase/schema.sql`: Applied 16 production tables, indexes, cascade rules, and initial seeds directly to live Supabase PostgreSQL (`aws-0-eu-north-1.pooler.supabase.com:6543`).
+  - `backend/app/config.py`: Sanitized custom Supabase connection pooler parameters (`supa`, `pgbouncer`).
+  - `backend/app/models/product.py`: Configured `ondelete="SET NULL"` on `seller_id`.
+  - `backend/app/models/order.py`: Configured `ondelete="SET NULL"` on `user_id` and `rider_id`.
+  - `backend/app/services/product_service.py`: Enforced granular `admin:catalog_manage_all` permission check in `verify_product_ownership`.
+  - `frontend/src/context/AuthContext.jsx`: Strengthened `isCustomer` guard against unauthenticated sessions.
   - `briefs/TASK.md`: Updated task brief, scope, and acceptance criteria.
-  - `briefs/HANDOFF.md`: Full handoff record across all 9 implementation tasks.
-  - `.superpowers/sdd/2026-09-02-supabase-rbac/progress.md`: Completed SDD progress ledger across Tasks 1–9.
+  - `briefs/HANDOFF.md`: Full handoff record across all implementation tasks and live deployment.
 - Validation:
-  - Backend acceptance check: `python -m pytest backend/tests -v` -> 53 passed, 0 failed in 19.75s.
-  - Frontend acceptance check: `npm run build` in `frontend` -> Vite production build completed cleanly in 3.62s (1672 modules transformed, zero errors).
+  - Live Supabase query verification: Connected to live Supabase pooler, confirmed 27 products, 5 users, 4 roles, 15 permissions, 18 delivery zones, and 18 brands.
+  - Backend acceptance check: `python -m pytest backend/tests -v` -> 53 passed, 0 failed in 20.92s.
+  - Frontend acceptance check: `npm run build` in `frontend` -> Vite production build completed cleanly in 6.93s (1672 modules transformed, zero errors).
 - Open questions: None.
-- Recommended next action: Ready for production deployment with Supabase PostgreSQL connection string, or demo testing using the 4 one-click personas on `/login`.
+- Recommended next action: Ready for production use or launching dev servers (`uvicorn` + `npm run dev`).
 
 ## Task 8: Frontend Portals (Seller, Rider & Admin RBAC)
 
