@@ -8,8 +8,8 @@ class Order(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     order_number = Column(String(50), unique=True, index=True, nullable=False) # e.g. FSD-2026-1001
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
-    rider_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
+    rider_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
     
     # Customer Details
     customer_name = Column(String(100), nullable=False)

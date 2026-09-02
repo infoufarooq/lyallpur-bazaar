@@ -7,7 +7,7 @@ class Product(Base):
     __tablename__ = "products"
 
     id = Column(Integer, primary_key=True, index=True)
-    seller_id = Column(Integer, ForeignKey("users.id"), nullable=True, index=True)
+    seller_id = Column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True, index=True)
     name = Column(String(200), index=True, nullable=False)
     slug = Column(String(250), unique=True, index=True, nullable=False)
     sku = Column(String(50), unique=True, index=True, nullable=False)

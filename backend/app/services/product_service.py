@@ -146,10 +146,15 @@ def verify_product_ownership(product_id: int, user: User, db: Session) -> Produc
             detail=f"Product with id {product_id} not found"
         )
 
-    user_roles, _ = get_user_roles_and_permissions(user)
-    is_admin = getattr(user, "is_admin", False) or "admin" in user_roles
+    user_roles, user_perms = get_user_roles_and_permissions(user)
+    has_manage_all = (
+        getattr(user, "is_admin", False)
+        or "admin" in user_roles
+        or "admin:catalog_manage_all" in user_perms
+        or "*" in user_perms
+    )
 
-    if not is_admin and product.seller_id != user.id:
+    if not has_manage_all and product.seller_id != user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Access forbidden: you do not have ownership of this product"
