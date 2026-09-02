@@ -26,9 +26,12 @@ class Settings(BaseSettings):
     @classmethod
     def get_database_url(cls, url: str) -> str:
         if url.startswith("postgres://"):
-            return url.replace("postgres://", "postgresql+psycopg2://", 1)
-        if url.startswith("postgresql://") and not url.startswith("postgresql+psycopg2://"):
-            return url.replace("postgresql://", "postgresql+psycopg2://", 1)
+            url = url.replace("postgres://", "postgresql+psycopg2://", 1)
+        elif url.startswith("postgresql://") and not url.startswith("postgresql+psycopg2://"):
+            url = url.replace("postgresql://", "postgresql+psycopg2://", 1)
+        # Strip custom Supabase query parameters that psycopg2/libpq rejects
+        for param in ["&supa=base-pooler.x", "?supa=base-pooler.x", "&pgbouncer=true", "?pgbouncer=true"]:
+            url = url.replace(param, "")
         return url
     
     # Security
