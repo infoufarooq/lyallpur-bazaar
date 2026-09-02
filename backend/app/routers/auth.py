@@ -2,8 +2,15 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.user import User, Address
+from app.models.role import Role
 from app.schemas.auth import UserCreate, UserLogin, UserOut, Token, AddressCreate, AddressOut
-from app.services.auth_service import verify_password, get_password_hash, create_access_token, get_current_user
+from app.services.auth_service import (
+    verify_password,
+    get_password_hash,
+    create_access_token,
+    get_current_user,
+    get_user_roles_and_permissions,
+)
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -32,12 +39,31 @@ def register(data: UserCreate, db: Session = Depends(get_db)):
         is_admin=False,
         is_active=True
     )
+
+    # Assign customer role by default upon new registration if not assigned
+    customer_role = db.query(Role).filter(Role.name == "customer").first()
+    if customer_role:
+        user.roles.append(customer_role)
+    else:
+        customer_role = Role(name="customer", description="Standard customer", is_system_role=True)
+        db.add(customer_role)
+        user.roles.append(customer_role)
+
     db.add(user)
     db.commit()
     db.refresh(user)
 
-    token = create_access_token(data={"sub": str(user.id), "phone": user.phone_number, "is_admin": user.is_admin})
-    return Token(access_token=token, token_type="bearer", user=UserOut.model_validate(user))
+    roles, permissions = get_user_roles_and_permissions(user)
+
+    token = create_access_token(
+        data={"sub": str(user.id), "phone": user.phone_number, "is_admin": user.is_admin},
+        roles=roles,
+        permissions=permissions,
+    )
+    user_out = UserOut.model_validate(user)
+    user_out.roles = roles
+    user_out.permissions = permissions
+    return Token(access_token=token, token_type="bearer", user=user_out, roles=roles, permissions=permissions)
 
 @router.post("/login", response_model=Token)
 def login(data: UserLogin, db: Session = Depends(get_db)):
@@ -57,12 +83,26 @@ def login(data: UserLogin, db: Session = Depends(get_db)):
             detail="This account has been deactivated."
         )
 
-    token = create_access_token(data={"sub": str(user.id), "phone": user.phone_number, "is_admin": user.is_admin})
-    return Token(access_token=token, token_type="bearer", user=UserOut.model_validate(user))
+    roles, permissions = get_user_roles_and_permissions(user)
+
+    token = create_access_token(
+        data={"sub": str(user.id), "phone": user.phone_number, "is_admin": user.is_admin},
+        roles=roles,
+        permissions=permissions,
+    )
+    user_out = UserOut.model_validate(user)
+    user_out.roles = roles
+    user_out.permissions = permissions
+    return Token(access_token=token, token_type="bearer", user=user_out, roles=roles, permissions=permissions)
 
 @router.get("/me", response_model=UserOut)
 def get_profile(current_user: User = Depends(get_current_user)):
-    return current_user
+    roles, permissions = get_user_roles_and_permissions(current_user)
+    user_out = UserOut.model_validate(current_user)
+    user_out.roles = roles
+    user_out.permissions = permissions
+    return user_out
+
 
 @router.post("/addresses", response_model=AddressOut)
 def add_address(data: AddressCreate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
