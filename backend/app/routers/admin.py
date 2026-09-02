@@ -218,9 +218,20 @@ def admin_assign_rider(
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
 
-    rider = db.query(User).filter(User.id == data.rider_id, User.is_active == True).first()
+    if order.order_status in ["Delivered", "Cancelled"]:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Cannot assign rider to an order with status '{order.order_status}'"
+        )
+
+    rider = (
+        db.query(User)
+        .join(User.roles)
+        .filter(User.id == data.rider_id, Role.name == "rider", User.is_active == True)
+        .first()
+    )
     if not rider:
-        raise HTTPException(status_code=404, detail="Rider not found")
+        raise HTTPException(status_code=404, detail="Active delivery rider not found")
 
     order.rider_id = rider.id
     order.assigned_at = datetime.utcnow()

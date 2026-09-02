@@ -203,6 +203,10 @@ def test_admin_rbac_users_list_and_role_assignment(rbac_test_client):
     )
     assert bad_user_assign.status_code == 404
 
+    # Query parameter bounds validation: page=0 returns 422
+    bad_page_res = client.get("/api/admin/rbac/users?page=0", headers=headers)
+    assert bad_page_res.status_code == 422
+
 def test_admin_rider_assignment_to_order(rbac_test_client):
     client = rbac_test_client
     admin_token = get_auth_token(client, "admin@lyallpurbazaar.pk", "Admin@123")
@@ -242,6 +246,17 @@ def test_admin_rider_assignment_to_order(rbac_test_client):
     )
     assert bad_rider_res.status_code == 404
 
+    # Assign non-rider user (e.g. seller) returns 404
+    users_res = client.get("/api/admin/rbac/users", headers=headers)
+    seller_user = next(u for u in users_res.json() if u["email"] == "seller@lyallpurbazaar.pk")
+    non_rider_res = client.put(
+        f"/api/admin/orders/{test_order['id']}/assign-rider",
+        json={"rider_id": seller_user["id"]},
+        headers=headers
+    )
+    assert non_rider_res.status_code == 404
+    assert non_rider_res.json()["detail"] == "Active delivery rider not found"
+
     # Assign to non-existent order returns 404
     bad_order_res = client.put(
         "/api/admin/orders/99999/assign-rider",
@@ -249,3 +264,20 @@ def test_admin_rider_assignment_to_order(rbac_test_client):
         headers=headers
     )
     assert bad_order_res.status_code == 404
+
+    # Update order to Delivered terminal status
+    status_update = client.put(
+        f"/api/admin/orders/{test_order['id']}/status",
+        json={"order_status": "Delivered"},
+        headers=headers
+    )
+    assert status_update.status_code == 200
+
+    # Assigning rider to delivered terminal order returns 400
+    terminal_res = client.put(
+        f"/api/admin/orders/{test_order['id']}/assign-rider",
+        json={"rider_id": rider["id"]},
+        headers=headers
+    )
+    assert terminal_res.status_code == 400
+    assert "Cannot assign rider to an order with status 'Delivered'" in terminal_res.json()["detail"]

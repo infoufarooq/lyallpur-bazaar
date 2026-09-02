@@ -1,5 +1,5 @@
 from typing import List, Optional
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.user import User
@@ -136,8 +136,8 @@ def list_permissions(category: Optional[str] = None, db: Session = Depends(get_d
 
 @router.get("/users", response_model=List[UserOut])
 def list_users(
-    page: int = 1,
-    limit: int = 50,
+    page: int = Query(1, ge=1),
+    limit: int = Query(50, ge=1, le=100),
     role: Optional[str] = None,
     db: Session = Depends(get_db)
 ):
