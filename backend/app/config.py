@@ -19,11 +19,16 @@ class Settings(BaseSettings):
     
     # Database
     DATABASE_URL: str = _get_default_db_url()
+    DB_POOL_SIZE: int = 10
+    DB_MAX_OVERFLOW: int = 20
+    DB_POOL_RECYCLE: int = 300
 
     @classmethod
     def get_database_url(cls, url: str) -> str:
         if url.startswith("postgres://"):
-            return url.replace("postgres://", "postgresql://", 1)
+            return url.replace("postgres://", "postgresql+psycopg2://", 1)
+        if url.startswith("postgresql://") and not url.startswith("postgresql+psycopg2://"):
+            return url.replace("postgresql://", "postgresql+psycopg2://", 1)
         return url
     
     # Security
