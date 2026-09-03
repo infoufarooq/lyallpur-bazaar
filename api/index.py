@@ -17,10 +17,12 @@ os.environ.setdefault("VERCEL", "1")
 try:
     from app.database import engine, Base, SessionLocal
     from app.seed.seed_data import seed_database
+    from app.seed.seed_rbac import seed_rbac_data
     
     Base.metadata.create_all(bind=engine)
     db = SessionLocal()
     try:
+        seed_rbac_data(db)
         seed_database(db)
     finally:
         db.close()
