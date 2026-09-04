@@ -2,6 +2,21 @@
 
 Add the newest entry at the top.
 
+## Task: Storefront Integration, Verification & Handoff (Embedded Voice Assistant Task 5)
+
+- Owner: Antigravity
+- Status: Completed (Ready to Commit)
+- Changed paths:
+  - `frontend/src/App.jsx`: Mounted `<VoiceAssistantWidget />` persistently inside the root application layout (wrapped by `BrowserRouter` and `CartProvider`) so the floating AI shopping assistant is accessible across all storefront pages.
+  - `frontend/src/components/assistant/VoiceAssistantWidget.jsx`: Added `dir="auto"` on assistant/user message bubbles, paragraphs, and speech recognition transcription containers for seamless bidirectional RTL/LTR text rendering; connected `useCart` (`setIsDrawerOpen`) and `useNavigate` to inspect backend `action` dispatch (`open_cart`, `navigate_cart`, `navigate_checkout`); connected suggested action chips (`handleActionClick`) to directly open cart or route to checkout.
+  - `briefs/TASK.md`: Updated task brief to capture the full scope and acceptance criteria of the embedded AI voice shopping assistant.
+  - `briefs/HANDOFF.md`: Recorded completion of Task 5 and full end-to-end platform verification metrics.
+- Validation:
+  - Frontend production build: `$nodeDir = Split-Path (Get-ChildItem -Path 'C:\Users\User\AppData\Local\OpenAI\Codex\runtimes' -Recurse -Filter 'node.exe' | Select-Object -First 1).FullName; $env:PATH = "$nodeDir;" + $env:PATH; npm.cmd run build` -> Vite v6.4.3 production build finished in 3.55s with 1677 modules transformed and 0 errors.
+  - Full backend test suite: `python -m pytest backend/tests -v` -> 70 passed, 0 failed in 28.39s with zero regressions.
+- Open questions: None.
+- Recommended next action: The embedded AI voice shopping assistant is fully integrated, operational, and verified across backend and frontend. Ready for user exploration or live deployment.
+
 ## Task: Voice Assistant Widget & Interactive UI Components (Embedded Voice Assistant Task 4)
 
 - Owner: Antigravity

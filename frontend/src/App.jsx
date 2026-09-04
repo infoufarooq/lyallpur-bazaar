@@ -9,6 +9,7 @@ import Footer from './components/layout/Footer';
 import DeliveryModal from './components/layout/DeliveryModal';
 import CartDrawer from './components/layout/CartDrawer';
 import ProtectedRoute from './components/auth/ProtectedRoute';
+import VoiceAssistantWidget from './components/assistant/VoiceAssistantWidget';
 
 import HomePage from './pages/HomePage';
 import SearchResultsPage from './pages/SearchResultsPage';
@@ -83,6 +84,7 @@ export default function App() {
               <Footer />
               <DeliveryModal />
               <CartDrawer />
+              <VoiceAssistantWidget />
             </div>
           </CartProvider>
         </DeliveryProvider>

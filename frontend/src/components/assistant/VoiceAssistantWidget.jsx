@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Mic,
   MicOff,
@@ -10,6 +11,7 @@ import {
   ChevronDown
 } from 'lucide-react';
 import client from '../../api/client';
+import { useCart } from '../../context/CartContext';
 import { useSpeechRecognition } from '../../hooks/useSpeechRecognition';
 import { useSpeechSynthesis } from '../../hooks/useSpeechSynthesis';
 import VoiceVisualizer from './VoiceVisualizer';
@@ -47,6 +49,8 @@ function renderFormattedMessage(content) {
  * waveform, interactive product carousel with direct cart addition, and quick action pills.
  */
 export default function VoiceAssistantWidget() {
+  const navigate = useNavigate();
+  const { setIsDrawerOpen } = useCart();
   const [isOpen, setIsOpen] = useState(false);
   const [language, setLanguage] = useState('en'); // 'en' or 'ur'
   const [inputText, setInputText] = useState('');
@@ -119,11 +123,21 @@ export default function VoiceAssistantWidget() {
           role: 'assistant',
           content: res.data.reply,
           products: res.data.products || [],
-          suggested_actions: res.data.suggested_actions || []
+          suggested_actions: res.data.suggested_actions || [],
+          action: res.data.action
         };
 
         setMessages((prev) => [...prev, assistantMsg]);
         speak(res.data.reply, currentLang);
+
+        // Inspect backend action dispatch
+        if (res.data.action === 'open_cart') {
+          setIsDrawerOpen(true);
+        } else if (res.data.action === 'navigate_cart') {
+          navigate('/cart');
+        } else if (res.data.action === 'navigate_checkout') {
+          navigate('/checkout');
+        }
       } catch (err) {
         console.error('Assistant error:', err);
         const errorMsg = {
@@ -143,7 +157,21 @@ export default function VoiceAssistantWidget() {
         setIsLoading(false);
       }
     },
-    [inputText, speak, stopSpeaking]
+    [inputText, speak, stopSpeaking, navigate, setIsDrawerOpen]
+  );
+
+  const handleActionClick = useCallback(
+    (act) => {
+      const lower = (act || '').toLowerCase();
+      if (lower === 'check cart' || lower === 'view cart' || lower === 'کارٹ دیکھیں') {
+        setIsDrawerOpen(true);
+      } else if (lower === 'checkout now' || lower === 'چیک آؤٹ') {
+        navigate('/checkout');
+      } else {
+        sendMessage(act);
+      }
+    },
+    [sendMessage, setIsDrawerOpen, navigate]
   );
 
   const handleSpeechResult = useCallback(
@@ -332,13 +360,14 @@ export default function VoiceAssistantWidget() {
                 }`}
               >
                 <div
+                  dir="auto"
                   className={`max-w-[85%] px-3.5 py-2.5 rounded-2xl text-xs leading-relaxed ${
                     m.role === 'user'
                       ? 'bg-emerald-600 text-white rounded-br-none shadow-xs'
                       : 'bg-white text-gray-800 border border-gray-100 shadow-xs rounded-bl-none'
                   }`}
                 >
-                  <p className="whitespace-pre-line">
+                  <p className="whitespace-pre-line" dir="auto">
                     {renderFormattedMessage(m.content)}
                   </p>
                 </div>
@@ -359,7 +388,7 @@ export default function VoiceAssistantWidget() {
                       <button
                         key={actIdx}
                         type="button"
-                        onClick={() => sendMessage(act)}
+                        onClick={() => handleActionClick(act)}
                         className="px-2.5 py-1 bg-white hover:bg-emerald-50 active:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-full text-[11px] font-semibold transition-colors shadow-2xs hover:border-emerald-300 cursor-pointer"
                       >
                         {act}
@@ -373,8 +402,11 @@ export default function VoiceAssistantWidget() {
             {/* Real-time Interim Speech Bubble */}
             {isListening && interimTranscript && (
               <div className="flex flex-col items-end">
-                <div className="max-w-[85%] px-3.5 py-2 rounded-2xl rounded-br-none text-xs bg-emerald-100 text-emerald-900 italic border border-emerald-200 animate-pulse">
-                  "{interimTranscript}..."
+                <div
+                  dir="auto"
+                  className="max-w-[85%] px-3.5 py-2 rounded-2xl rounded-br-none text-xs bg-emerald-100 text-emerald-900 italic border border-emerald-200 animate-pulse"
+                >
+                  <p dir="auto">"{interimTranscript}..."</p>
                 </div>
               </div>
             )}
