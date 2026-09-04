@@ -22,6 +22,8 @@ def assistant_chat(request: AssistantChatRequest, db: Session = Depends(get_db))
     """Process a spoken or typed shopper query and return response with matching products."""
     try:
         return process_assistant_chat(request, db)
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"Assistant chat processing failed: {e}", exc_info=True)
         raise HTTPException(
@@ -42,8 +44,7 @@ async def assistant_speak(request: AssistantSpeakRequest):
         async for chunk in communicate.stream():
             if chunk["type"] == "audio":
                 mp3_buffer.write(chunk["data"])
-        mp3_buffer.seek(0)
-        return Response(content=mp3_buffer.read(), media_type="audio/mpeg")
+        return Response(content=mp3_buffer.getvalue(), media_type="audio/mpeg")
     except Exception as e:
         logger.warning(f"Neural speech synthesis unavailable: {e}")
         raise HTTPException(

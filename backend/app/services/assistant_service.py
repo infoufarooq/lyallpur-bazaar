@@ -1,6 +1,7 @@
 import os
 import re
 import json
+import logging
 from typing import List, Optional, Tuple
 from sqlalchemy.orm import Session
 from sqlalchemy import or_
@@ -11,6 +12,8 @@ from app.models.product import Product
 from app.models.category import Category
 from app.models.delivery_zone import DeliveryZone
 from app.services.product_service import format_product_out
+
+logger = logging.getLogger(__name__)
 
 SYSTEM_PROMPT = """You are 'Lyallpur Assistant', a friendly, polite, and knowledgeable shopping concierge for 'Lyallpur Bazaar', a premier local marketplace in Faisalabad, Pakistan.
 You assist shoppers with finding groceries, fabrics (lawn, unstitched cotton, khaddi), household goods, and answering delivery questions.
@@ -208,6 +211,6 @@ def process_assistant_chat(request: AssistantChatRequest, db: Session) -> Assist
                     suggested_actions=fallback.suggested_actions
                 )
     except Exception as e:
-        print(f"Gemini API invocation error: {e}, falling back to local engine")
+        logger.warning(f"Gemini API invocation error: {e}, falling back to local engine")
         
     return _smart_fallback_matcher(request.message, request.language or "en", db)
