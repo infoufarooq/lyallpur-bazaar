@@ -96,6 +96,7 @@ export function useSpeechRecognition({ onResult, language = 'en-US' } = {}) {
 
     recognition.onend = () => {
       setIsListening(false);
+      setInterimTranscript('');
       clearTimeout(timerRef.current);
     };
 
@@ -133,6 +134,7 @@ export function useSpeechRecognition({ onResult, language = 'en-US' } = {}) {
       console.warn('SpeechRecognition stop warning:', err);
     }
     clearTimeout(timerRef.current);
+    setInterimTranscript('');
     setIsListening(false);
   }, []);
 

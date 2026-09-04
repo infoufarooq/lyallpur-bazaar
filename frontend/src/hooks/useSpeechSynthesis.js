@@ -21,12 +21,24 @@ export function useSpeechSynthesis() {
   const audioRef = useRef(null);
   const utteranceRef = useRef(null);
   const isMutedRef = useRef(isMuted);
+  const abortControllerRef = useRef(null);
+  const activeBlobUrlRef = useRef(null);
 
   useEffect(() => {
     isMutedRef.current = isMuted;
   }, [isMuted]);
 
   const stopSpeaking = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+      abortControllerRef.current = null;
+    }
+
+    if (activeBlobUrlRef.current) {
+      URL.revokeObjectURL(activeBlobUrlRef.current);
+      activeBlobUrlRef.current = null;
+    }
+
     if (
       typeof window !== 'undefined' &&
       'speechSynthesis' in window &&
@@ -60,21 +72,25 @@ export function useSpeechSynthesis() {
   }, []);
 
   const toggleMute = useCallback(() => {
-    setIsMuted((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem('lyallpur_assistant_muted', String(next));
-      } catch (e) {
-        console.warn('Failed to save mute preference to localStorage:', e);
-      }
-      if (next) {
-        stopSpeaking();
-      }
-      return next;
-    });
+    const next = !isMutedRef.current;
+    try {
+      localStorage.setItem('lyallpur_assistant_muted', String(next));
+    } catch (e) {
+      console.warn('Failed to save mute preference to localStorage:', e);
+    }
+    if (next) {
+      stopSpeaking();
+    }
+    setIsMuted(next);
   }, [stopSpeaking]);
 
   const playServerAudio = useCallback((textToSpeak, langCode) => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
     const baseUrl = import.meta.env?.VITE_API_URL || '/api';
     const url = `${baseUrl}/assistant/speak`;
     const normalizedLang =
@@ -84,6 +100,7 @@ export function useSpeechSynthesis() {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text: textToSpeak, language: normalizedLang }),
+      signal: controller.signal,
     })
       .then((res) => {
         if (!res.ok) {
@@ -92,16 +109,24 @@ export function useSpeechSynthesis() {
         return res.blob();
       })
       .then((blob) => {
-        if (isMutedRef.current) return;
+        if (isMutedRef.current || controller.signal.aborted) return;
 
+        if (activeBlobUrlRef.current) {
+          URL.revokeObjectURL(activeBlobUrlRef.current);
+        }
         const audioUrl = URL.createObjectURL(blob);
+        activeBlobUrlRef.current = audioUrl;
+
         const audio = new Audio(audioUrl);
         audioRef.current = audio;
 
         const cleanup = () => {
           setIsSpeaking(false);
           audioRef.current = null;
-          URL.revokeObjectURL(audioUrl);
+          if (activeBlobUrlRef.current === audioUrl) {
+            URL.revokeObjectURL(audioUrl);
+            activeBlobUrlRef.current = null;
+          }
         };
 
         audio.onplay = () => setIsSpeaking(true);
@@ -114,8 +139,10 @@ export function useSpeechSynthesis() {
         });
       })
       .catch((err) => {
-        console.warn('Fallback speech fetch failed:', err);
-        setIsSpeaking(false);
+        if (err.name !== 'AbortError') {
+          console.warn('Fallback speech fetch failed:', err);
+          setIsSpeaking(false);
+        }
       });
   }, []);
 
@@ -127,6 +154,16 @@ export function useSpeechSynthesis() {
 
       const isUrdu = language === 'ur' || language === 'ur-PK';
       const targetLang = isUrdu ? 'ur-PK' : 'en-US';
+
+      // If Urdu is requested, check if an Urdu OS voice exists. If not, route directly to neural server TTS
+      if (isUrdu && typeof window !== 'undefined' && 'speechSynthesis' in window && window.speechSynthesis) {
+        const voices = window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
+        const hasUrduVoice = voices.some((v) => v.lang && v.lang.toLowerCase().startsWith('ur'));
+        if (!hasUrduVoice) {
+          playServerAudio(text, language);
+          return;
+        }
+      }
 
       // 1. Try Browser window.speechSynthesis
       if (
