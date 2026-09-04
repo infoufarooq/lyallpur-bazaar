@@ -29,5 +29,5 @@ try:
 except Exception as e:
     print(f"Vercel DB initialization warning: {e}")
 
-# Export FastAPI instance for Vercel Serverless Function
+# Export FastAPI instance for Vercel Serverless Function (includes assistant router via app.main)
 from app.main import app

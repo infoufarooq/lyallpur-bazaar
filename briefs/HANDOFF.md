@@ -2,6 +2,22 @@
 
 Add the newest entry at the top.
 
+## Task: Assistant API Router & Edge-TTS Audio Generation (Embedded Voice Assistant Task 2)
+
+- Owner: Antigravity
+- Status: Completed
+- Changed paths:
+  - `backend/app/routers/assistant.py`: Implemented `/chat` and `/speak` endpoints with `process_assistant_chat` integration and `edge-tts` neural voice synthesis (`ur-PK-UzmaNeural`, `en-US-JennyNeural`).
+  - `backend/app/main.py`: Registered `assistant.router` under `api_v1_prefix` (`/api`).
+  - `api/index.py`: Verified and documented Vercel serverless entrypoint clean inclusion of assistant router.
+  - `backend/tests/test_assistant_api.py`: Created integration test suite with 9 tests covering chat, product query, Urdu/English neural speech, validation errors, 500 error handling, and 503 network resilience.
+- Validation:
+  - Integration tests: `python -m pytest backend/tests/test_assistant_api.py -v` -> 9 passed, 0 failed.
+  - Full backend test suite: `python -m pytest backend/tests -q` -> 70 passed, 0 failed across entire backend.
+  - Frontend build: `npm` command not found in environment; frontend code was untouched in this backend task.
+- Open questions: None.
+- Recommended next action: Proceed to Task 3 (Frontend Speech Recognition & Synthesis Hooks: `useSpeechRecognition.js`, `useSpeechSynthesis.js`).
+
 ## Task 9: End-to-End Acceptance, Verification & Handoff
 
 - Owner: Antigravity
