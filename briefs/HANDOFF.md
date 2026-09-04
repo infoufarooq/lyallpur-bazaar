@@ -2,6 +2,20 @@
 
 Add the newest entry at the top.
 
+## Task: Frontend Speech Recognition & Synthesis Hooks (Embedded Voice Assistant Task 3)
+
+- Owner: Antigravity
+- Status: Completed (Committed: `f1d02fc`)
+- Changed paths:
+  - `frontend/src/hooks/useSpeechRecognition.js`: Created client-side speech-to-text hook with Web Speech API (`SpeechRecognition` / `webkitSpeechRecognition`), interim and final transcription, 7-second silence auto-timeout, language mapping (`ur-PK` / `en-US`), and safe unmount cleanup.
+  - `frontend/src/hooks/useSpeechSynthesis.js`: Created client-side text-to-speech synthesis hook with `window.speechSynthesis` invocation, pitch/rate controls, persistent mute toggle saved in `localStorage`, instant cancellation on new voice input, and automatic fallback to `/api/assistant/speak`.
+- Validation:
+  - Frontend production build: Vite build completed in 3.67s with 0 errors (1672 modules transformed; 1674 transformed when bundled).
+  - Module exports & runtime verification: Node module evaluation confirmed both hooks export clean function interfaces.
+  - Backend regression check: Full pytest test suite (`python -m pytest backend/tests -q`) passed 70/70 tests with 0 regressions.
+- Open questions: None.
+- Recommended next action: Proceed to Task 4 (Voice Assistant Widget & Interactive UI Components: `VoiceVisualizer.jsx`, `AssistantProductCard.jsx`, `VoiceAssistantWidget.jsx`).
+
 ## Task: Assistant API Router & Edge-TTS Audio Generation (Embedded Voice Assistant Task 2)
 
 - Owner: Antigravity
